@@ -22,6 +22,7 @@ import me.jellysquid.mods.sodium.client.util.math.FrustumExtended;
 import me.jellysquid.mods.sodium.client.world.ChunkStatusListener;
 import me.jellysquid.mods.sodium.client.world.ChunkStatusListenerManager;
 import me.jellysquid.mods.sodium.common.util.ListUtil;
+import me.jellysquid.mods.sodium.client.WorldRendererAccessor;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -41,8 +42,6 @@ import java.util.SortedSet;
  * Provides an extension to vanilla's {@link WorldRenderer}.
  */
 public class SodiumWorldRenderer implements ChunkStatusListener {
-    private static SodiumWorldRenderer instance;
-
     private final MinecraftClient client;
 
     private ClientWorld world;
@@ -62,29 +61,14 @@ public class SodiumWorldRenderer implements ChunkStatusListener {
     private ChunkRenderBackend chunkRenderBackend;
 
     /**
-     * Instantiates Sodium's world renderer. This should be called at the time of the world renderer initialization.
-     */
-    public static SodiumWorldRenderer create() {
-        if (instance == null) {
-            instance = new SodiumWorldRenderer(MinecraftClient.getInstance());
-        }
-
-        return instance;
-    }
-
-    /**
      * @throws IllegalStateException If the renderer has not yet been created
      * @return The current instance of this type
      */
     public static SodiumWorldRenderer getInstance() {
-        if (instance == null) {
-            throw new IllegalStateException("Renderer not initialized");
-        }
-
-        return instance;
+        return ((WorldRendererAccessor) MinecraftClient.getInstance().worldRenderer).getSodiumWorldRenderer();
     }
 
-    private SodiumWorldRenderer(MinecraftClient client) {
+    public SodiumWorldRenderer(MinecraftClient client) {
         this.client = client;
     }
 
@@ -259,11 +243,14 @@ public class SodiumWorldRenderer implements ChunkStatusListener {
 
         final ChunkVertexType vertexFormat;
 
-        if (opts.advanced.useCompactVertexFormat) {
+        /*if (opts.advanced.useCompactVertexFormat) {
             vertexFormat = DefaultModelVertexFormats.MODEL_VERTEX_HFP;
         } else {
             vertexFormat = DefaultModelVertexFormats.MODEL_VERTEX_SFP;
-        }
+        }*/
+
+        // override it all
+        vertexFormat = DefaultModelVertexFormats.MODEL_VERTEX_XHFP;
 
         this.chunkRenderBackend = createChunkRenderBackend(opts.advanced.chunkRendererBackend, vertexFormat);
         this.chunkRenderBackend.createShaders();
@@ -437,5 +424,17 @@ public class SodiumWorldRenderer implements ChunkStatusListener {
 
     public ChunkRenderBackend getChunkRenderer() {
         return this.chunkRenderBackend;
+    }
+
+
+    public ChunkRenderManager.RenderContext createNewRenderContext() {
+        return new ChunkRenderManager.RenderContext();
+    }
+
+    public ChunkRenderManager.RenderContext switchRenderContext(ChunkRenderManager.RenderContext context) {
+        ChunkRenderManager.RenderContext old = chunkRenderManager.renderContext;
+
+        chunkRenderManager.renderContext = (ChunkRenderManager.RenderContext) context;
+        return old;
     }
 }

@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import me.jellysquid.mods.sodium.client.SodiumClientMod;
+import me.jellysquid.mods.sodium.client.SodiumHooks;
 import me.jellysquid.mods.sodium.client.gl.util.GlFogHelper;
 import me.jellysquid.mods.sodium.client.render.SodiumWorldRenderer;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuildResult;
@@ -73,10 +74,7 @@ public class ChunkRenderManager implements ChunkStatusListener {
     private final ObjectArrayFIFOQueue<ChunkRenderContainer> importantRebuildQueue = new ObjectArrayFIFOQueue<>();
     private final ObjectArrayFIFOQueue<ChunkRenderContainer> rebuildQueue = new ObjectArrayFIFOQueue<>();
 
-    private final ChunkRenderList[] chunkRenderLists = new ChunkRenderList[BlockRenderPass.COUNT];
-    private final ObjectList<ChunkRenderContainer> tickableChunks = new ObjectArrayList<>();
-
-    private final ObjectList<BlockEntity> visibleBlockEntities = new ObjectArrayList<>();
+    public RenderContext renderContext;
 
     private final SodiumWorldRenderer renderer;
     private final ClientWorld world;
@@ -88,6 +86,20 @@ public class ChunkRenderManager implements ChunkStatusListener {
     private boolean dirty;
 
     private int visibleChunkCount;
+
+    public static class RenderContext {
+        public final ObjectArrayFIFOQueue<ChunkRenderContainer> iterationQueue = new ObjectArrayFIFOQueue<>();
+        @SuppressWarnings("unchecked")
+        public final ChunkRenderList[] chunkRenderLists = new ChunkRenderList[BlockRenderPass.COUNT];
+        public final ObjectList<ChunkRenderContainer> tickableChunks = new ObjectArrayList<>();
+        public final ObjectList<BlockEntity> visibleBlockEntities = new ObjectArrayList<>();
+
+        public RenderContext(){
+            for (int i = 0; i < this.chunkRenderLists.length; i++) {
+                this.chunkRenderLists[i] = new ChunkRenderList();
+            }
+        }
+    }
 
     private boolean useFogCulling;
     private double fogRenderCutoff;
@@ -102,9 +114,7 @@ public class ChunkRenderManager implements ChunkStatusListener {
 
         this.dirty = true;
 
-        for (int i = 0; i < this.chunkRenderLists.length; i++) {
-            this.chunkRenderLists[i] = new ChunkRenderList();
-        }
+        this.renderContext = new RenderContext();
 
         this.culler = new ChunkGraphCuller(world, renderDistance);
         this.useChunkFaceCulling = SodiumClientMod.options().advanced.useChunkFaceCulling;
@@ -128,14 +138,15 @@ public class ChunkRenderManager implements ChunkStatusListener {
 
         this.useFogCulling = false;
 
-        if (SodiumClientMod.options().advanced.useFogOcclusion) {
+        // Iris: disable fog culling since shaderpacks aren't guaranteed to actually implement fog.
+        /*if (SodiumClientMod.options().advanced.useFogOcclusion) {
             float dist = GlFogHelper.getFogCutoff() + FOG_PLANE_OFFSET;
 
             if (dist != 0.0f) {
                 this.useFogCulling = true;
                 this.fogRenderCutoff = Math.max(FOG_PLANE_MIN_DISTANCE, dist * dist);
             }
-        }
+        }*/
     }
 
     private void iterateChunks(Camera camera, FrustumExtended frustum, int frame, boolean spectator) {
@@ -160,6 +171,10 @@ public class ChunkRenderManager implements ChunkStatusListener {
         }
 
         if (this.useFogCulling && render.getSquaredDistanceXZ(this.cameraX, this.cameraZ) >= this.fogRenderCutoff) {
+            return;
+        }
+
+        if (SodiumHooks.shouldCull.test(render)) {
             return;
         }
 
@@ -207,12 +222,12 @@ public class ChunkRenderManager implements ChunkStatusListener {
         ChunkGraphicsStateArray states = render.getGraphicsStates();
 
         for (int i = 0; i < states.getSize(); i++) {
-            this.chunkRenderLists[states.getKey(i)]
+            this.renderContext.chunkRenderLists[states.getKey(i)]
                     .add(states.getValue(i), visibleFaces);
         }
 
         if (render.isTickable()) {
-            this.tickableChunks.add(render);
+            this.renderContext.tickableChunks.add(render);
         }
 
         this.visibleChunkCount++;
@@ -222,7 +237,7 @@ public class ChunkRenderManager implements ChunkStatusListener {
         Collection<BlockEntity> blockEntities = render.getData().getBlockEntities();
 
         if (!blockEntities.isEmpty()) {
-            this.visibleBlockEntities.addAll(blockEntities);
+            this.renderContext.visibleBlockEntities.addAll(blockEntities);
         }
     }
 
@@ -240,19 +255,19 @@ public class ChunkRenderManager implements ChunkStatusListener {
         this.rebuildQueue.clear();
         this.importantRebuildQueue.clear();
 
-        this.visibleBlockEntities.clear();
+        this.renderContext.visibleBlockEntities.clear();
 
-        for (ChunkRenderList list : this.chunkRenderLists) {
+        for (ChunkRenderList list : this.renderContext.chunkRenderLists) {
             list.reset();
         }
 
-        this.tickableChunks.clear();
+        this.renderContext.tickableChunks.clear();
 
         this.visibleChunkCount = 0;
     }
 
     public Collection<BlockEntity> getVisibleBlockEntities() {
-        return this.visibleBlockEntities;
+        return this.renderContext.visibleBlockEntities;
     }
 
     @Override
@@ -367,16 +382,16 @@ public class ChunkRenderManager implements ChunkStatusListener {
     }
 
     public void renderLayer(MatrixStack matrixStack, BlockRenderPass pass, double x, double y, double z) {
-        ChunkRenderList chunkRenderList = this.chunkRenderLists[pass.ordinal()];
+        ChunkRenderList chunkRenderList = this.renderContext.chunkRenderLists[pass.ordinal()];
         ChunkRenderListIterator iterator = chunkRenderList.iterator(pass.isTranslucent());
 
-        this.backend.begin(matrixStack);
+        this.backend.begin(matrixStack, pass);
         this.backend.render(iterator, new ChunkCameraContext(x, y, z));
         this.backend.end(matrixStack);
     }
 
     public void tickVisibleRenders() {
-        for (ChunkRenderContainer render : this.tickableChunks) {
+        for (ChunkRenderContainer render : this.renderContext.tickableChunks) {
             render.tick();
         }
     }
