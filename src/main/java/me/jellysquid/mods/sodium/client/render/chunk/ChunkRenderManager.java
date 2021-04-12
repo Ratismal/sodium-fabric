@@ -138,14 +138,15 @@ public class ChunkRenderManager implements ChunkStatusListener {
 
         this.useFogCulling = false;
 
-        if (SodiumClientMod.options().advanced.useFogOcclusion) {
+        // Iris: disable fog culling since shaderpacks aren't guaranteed to actually implement fog.
+        /*if (SodiumClientMod.options().advanced.useFogOcclusion) {
             float dist = GlFogHelper.getFogCutoff() + FOG_PLANE_OFFSET;
 
             if (dist != 0.0f) {
                 this.useFogCulling = true;
                 this.fogRenderCutoff = Math.max(FOG_PLANE_MIN_DISTANCE, dist * dist);
             }
-        }
+        }*/
     }
 
     private void iterateChunks(Camera camera, FrustumExtended frustum, int frame, boolean spectator) {
@@ -384,7 +385,7 @@ public class ChunkRenderManager implements ChunkStatusListener {
         ChunkRenderList chunkRenderList = this.renderContext.chunkRenderLists[pass.ordinal()];
         ChunkRenderListIterator iterator = chunkRenderList.iterator(pass.isTranslucent());
 
-        this.backend.begin(matrixStack);
+        this.backend.begin(matrixStack, pass);
         this.backend.render(iterator, new ChunkCameraContext(x, y, z));
         this.backend.end(matrixStack);
     }

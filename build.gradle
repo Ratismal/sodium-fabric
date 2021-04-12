@@ -4,7 +4,7 @@ plugins {
 }
 
 archivesBaseName = "${project.archives_base_name}-mc${project.minecraft_version}"
-version = "${project.mod_version}+${getVersionMetadata()}"
+version = "${project.mod_version}-SNAPSHOT_${getVersionMetadata()}"
 group = project.maven_group
 
 minecraft {
@@ -12,11 +12,16 @@ minecraft {
     accessWidener = file("src/main/resources/sodium.accesswidener")
 }
 
+repositories {
+    mavenLocal()
+}
+
 dependencies {
     //to change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modCompile "net.fabricmc:fabric-loader:${project.loader_version}"
+    modCompile "net.coderbot.iris:iris:0.3.0-sodium_compatibility"
 }
 
 if (project.use_third_party_mods) {
