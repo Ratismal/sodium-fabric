@@ -1,20 +1,13 @@
 package me.jellysquid.mods.sodium.client.render.chunk;
 
-import me.jellysquid.mods.sodium.client.SodiumHooks;
 import me.jellysquid.mods.sodium.client.render.SodiumWorldRenderer;
 import me.jellysquid.mods.sodium.client.render.chunk.data.ChunkRenderBounds;
 import me.jellysquid.mods.sodium.client.render.chunk.data.ChunkRenderData;
 import me.jellysquid.mods.sodium.client.render.chunk.passes.BlockRenderPass;
 import me.jellysquid.mods.sodium.client.render.texture.SpriteUtil;
 import me.jellysquid.mods.sodium.client.util.math.FrustumExtended;
-
-import me.jellysquid.mods.sodium.common.util.DirectionUtil;
-import net.minecraft.client.render.Frustum;
-import me.jellysquid.mods.sodium.common.util.collections.TrackedArrayItem;
-
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkSectionPos;
 
 import java.lang.reflect.Array;
@@ -40,19 +33,15 @@ public class ChunkRenderContainer<T extends ChunkGraphicsState> {
     private boolean tickable;
     private int id;
 
-
     public ChunkRenderContainer(ChunkRenderBackend<T> backend, SodiumWorldRenderer worldRenderer, int chunkX, int chunkY, int chunkZ, ChunkRenderColumn<T> column) {
-
         this.worldRenderer = worldRenderer;
 
         this.chunkX = chunkX;
         this.chunkY = chunkY;
         this.chunkZ = chunkZ;
 
-
         //noinspection unchecked
         this.graphicsStates = (T[]) Array.newInstance(backend.getGraphicsStateType(), BlockRenderPass.COUNT);
-
         this.column = column;
     }
 
@@ -152,7 +141,6 @@ public class ChunkRenderContainer<T extends ChunkGraphicsState> {
     }
 
     /**
-
      * Tests if the given chunk render is visible within the provided frustum.
      * @param frustum The frustum to test against
      * @return True if visible, otherwise false
@@ -163,7 +151,6 @@ public class ChunkRenderContainer<T extends ChunkGraphicsState> {
         float z = this.getOriginZ();
 
         return !frustum.fastAabbTest(x, y, z, x + 16.0f, y + 16.0f, z + 16.0f);
-
     }
 
     /**
@@ -303,3 +290,236 @@ public class ChunkRenderContainer<T extends ChunkGraphicsState> {
         return this.id;
     }
 }
+Skip to content
+Pull requests
+Issues
+Marketplace
+Explore
+@machinesmith42
+machinesmith42 /
+sodium-fabric
+forked from qouteall/sodium-fabric
+
+1
+1
+
+    264
+
+Code
+Pull requests 2
+Actions
+Projects
+Security
+Insights
+
+    Settings
+
+sodium-fabric/src/main/java/me/jellysquid/mods/sodium/client/render/chunk/
+in
+pr/14-update
+
+1
+
+package me.jellysquid.mods.sodium.client.render.chunk;
+
+2
+
+​
+
+3
+
+import me.jellysquid.mods.sodium.client.SodiumHooks;
+
+4
+
+import me.jellysquid.mods.sodium.client.render.SodiumWorldRenderer;
+
+5
+
+import me.jellysquid.mods.sodium.client.render.chunk.data.ChunkRenderBounds;
+
+6
+
+import me.jellysquid.mods.sodium.client.render.chunk.data.ChunkRenderData;
+
+7
+
+import me.jellysquid.mods.sodium.client.render.chunk.passes.BlockRenderPass;
+
+8
+
+import me.jellysquid.mods.sodium.client.render.texture.SpriteUtil;
+
+9
+
+import me.jellysquid.mods.sodium.client.util.math.FrustumExtended;
+
+10
+
+​
+
+11
+
+import me.jellysquid.mods.sodium.common.util.DirectionUtil;
+
+12
+
+import net.minecraft.client.render.Frustum;
+
+13
+
+import me.jellysquid.mods.sodium.common.util.collections.TrackedArrayItem;
+
+14
+
+​
+
+15
+
+import net.minecraft.client.texture.Sprite;
+
+16
+
+import net.minecraft.util.math.BlockPos;
+
+17
+
+import net.minecraft.util.math.Box;
+
+18
+
+import net.minecraft.util.math.ChunkSectionPos;
+
+19
+
+​
+
+20
+
+import java.lang.reflect.Array;
+
+21
+
+import java.util.concurrent.CompletableFuture;
+
+22
+
+​
+
+23
+
+/**
+
+24
+
+ * The render state object for a chunk section. This contains all the graphics state for each render pass along with
+
+25
+
+ * data about the render in the chunk visibility graph.
+
+26
+
+ */
+
+27
+
+public class ChunkRenderContainer<T extends ChunkGraphicsState> {
+
+28
+
+    private final SodiumWorldRenderer worldRenderer;
+
+29
+
+    private final int chunkX, chunkY, chunkZ;
+
+30
+
+​
+
+31
+
+    private final T[] graphicsStates;
+
+32
+
+    private final ChunkRenderColumn<T> column;
+
+33
+
+​
+
+34
+
+    private ChunkRenderData data = ChunkRenderData.ABSENT;
+
+35
+
+    private CompletableFuture<Void> rebuildTask = null;
+
+36
+
+​
+
+37
+
+    private boolean needsRebuild;
+
+38
+
+    private boolean needsImportantRebuild;
+
+39
+
+​
+
+40
+
+    private boolean tickable;
+
+41
+
+    private int id;
+
+42
+
+​
+
+43
+
+​
+
+44
+
+    public ChunkRenderContainer(ChunkRenderBackend<T> backend, SodiumWorldRenderer worldRenderer, int chunkX, int chunkY, int chunkZ, ChunkRenderColumn<T> column) {
+
+45
+
+​
+
+46
+
+        this.worldRenderer = worldRenderer;
+
+@machinesmith42
+Commit changes
+Commit summary
+Optional extended description
+Commit directly to the pr/14-update branch.
+Create a new branch for this commit and start a pull request. Learn more about pull requests.
+
+    © 2021 GitHub, Inc.
+    Terms
+    Privacy
+    Security
+    Status
+    Docs
+
+    Contact GitHub
+    Pricing
+    API
+    Training
+    Blog
+    About
+
