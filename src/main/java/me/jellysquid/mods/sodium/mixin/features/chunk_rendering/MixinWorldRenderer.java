@@ -2,6 +2,7 @@ package me.jellysquid.mods.sodium.mixin.features.chunk_rendering;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import me.jellysquid.mods.sodium.client.WorldRendererAccessor;
+import me.jellysquid.mods.sodium.client.gl.device.RenderDevice;
 import me.jellysquid.mods.sodium.client.render.SodiumWorldRenderer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.options.GameOptions;
@@ -53,7 +54,13 @@ public abstract class MixinWorldRenderer implements WorldRendererAccessor {
 
     @Inject(method = "setWorld", at = @At("RETURN"))
     private void onWorldChanged(ClientWorld world, CallbackInfo ci) {
-        this.renderer.setWorld(world);
+        RenderDevice.enterManagedCode();
+
+        try {
+            this.renderer.setWorld(world);
+        } finally {
+            RenderDevice.exitManagedCode();
+        }
     }
 
     /**
@@ -84,8 +91,14 @@ public abstract class MixinWorldRenderer implements WorldRendererAccessor {
      * @author JellySquid
      */
     @Overwrite
-    private void renderLayer(RenderLayer renderLayer, MatrixStack matrixStack, double d, double e, double f) {
-        this.renderer.drawChunkLayer(renderLayer, matrixStack, d, e, f);
+    private void renderLayer(RenderLayer renderLayer, MatrixStack matrixStack, double x, double y, double z) {
+        RenderDevice.enterManagedCode();
+
+        try {
+            this.renderer.drawChunkLayer(renderLayer, matrixStack, x, y, z);
+        } finally {
+            RenderDevice.exitManagedCode();
+        }
     }
 
     /**
@@ -94,7 +107,13 @@ public abstract class MixinWorldRenderer implements WorldRendererAccessor {
      */
     @Overwrite
     private void setupTerrain(Camera camera, Frustum frustum, boolean hasForcedFrustum, int frame, boolean spectator) {
-        this.renderer.updateChunks(camera, frustum, hasForcedFrustum, frame, spectator);
+        RenderDevice.enterManagedCode();
+
+        try {
+            this.renderer.updateChunks(camera, frustum, hasForcedFrustum, frame, spectator);
+        } finally {
+            RenderDevice.exitManagedCode();
+        }
     }
 
     /**
@@ -135,7 +154,13 @@ public abstract class MixinWorldRenderer implements WorldRendererAccessor {
 
     @Inject(method = "reload", at = @At("RETURN"))
     private void onReload(CallbackInfo ci) {
-        this.renderer.reload();
+        RenderDevice.enterManagedCode();
+
+        try {
+            this.renderer.reload();
+        } finally {
+            RenderDevice.exitManagedCode();
+        }
     }
 
     @Inject(method = "render", at = @At(value = "FIELD", target = "Lnet/minecraft/client/render/WorldRenderer;noCullingBlockEntities:Ljava/util/Set;", shift = At.Shift.BEFORE, ordinal = 0))

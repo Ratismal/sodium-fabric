@@ -25,7 +25,7 @@ Fabric mods before, you can find a variety of community guides for doing so [her
 
 ![GitHub release](https://img.shields.io/github/release/CaffeineMC/sodium-fabric.svg)
 
-The latest releases of Sodium are published to our [Modrinth](https://modrinth.com/mods/sodium) and
+The latest releases of Sodium are published to our [Modrinth](https://modrinth.com/mod/sodium) and
 [GitHub release](https://github.com/CaffeineMC/sodium-fabric/releases) pages. Releases are considered by our team to be
 **suitable for general use**, but they are not guaranteed to be free of bugs and other issues.
 
@@ -52,11 +52,6 @@ we will expect that this is the case. Caveat emptor.
 If you are using the CurseForge client, you can continue to find downloads through our
 [CurseForge page](https://www.curseforge.com/minecraft/mc-mods/sodium). Unless you are using the CurseForge
 client, you should prefer the downloads linked on our Modrinth or GitHub release pages above.
-
-The CurseForge client does not natively support Fabric modding, so you will need to install
-[Jumploader](https://www.curseforge.com/minecraft/mc-mods/jumploader) in order to set up your Fabric environment. Due to
-the extra complexity and startup overhead this workaround adds, we generally do not recommend using this method unless
-you have an existing setup with it.
 
 ---
 
