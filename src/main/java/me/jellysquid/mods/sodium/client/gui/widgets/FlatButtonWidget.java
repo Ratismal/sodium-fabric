@@ -1,10 +1,9 @@
 package me.jellysquid.mods.sodium.client.gui.widgets;
 
 import me.jellysquid.mods.sodium.client.util.Dim2i;
-import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.util.math.MatrixStack;
 
-public class FlatButtonWidget extends AbstractWidget implements Drawable {
+public class FlatButtonWidget extends AbstractWidget {
     private final Dim2i dim;
     private final String label;
     private final Runnable action;

@@ -10,7 +10,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import me.jellysquid.mods.sodium.client.SodiumClientMod;
 import me.jellysquid.mods.sodium.client.SodiumHooks;
-import me.jellysquid.mods.sodium.client.gl.util.GlFogHelper;
 import me.jellysquid.mods.sodium.client.gl.device.CommandList;
 import me.jellysquid.mods.sodium.client.gl.device.RenderDevice;
 import me.jellysquid.mods.sodium.client.gl.compat.LegacyFogHelper;
@@ -97,6 +96,50 @@ public class ChunkRenderManager<T extends ChunkGraphicsState> implements ChunkSt
     private boolean useFogCulling;
     private double fogRenderCutoff;
 
+    public RenderContext renderContext;
+    public class RenderContext {
+        public final ObjectArrayFIFOQueue<ChunkRenderContainer> iterationQueue = new ObjectArrayFIFOQueue<>();
+        @SuppressWarnings("unchecked")
+        public final ChunkRenderList[] chunkRenderLists = new ChunkRenderList[BlockRenderPass.COUNT];
+        public final ObjectList<ChunkRenderContainer<T>> tickableChunks = new ObjectArrayList<>();
+        public final ObjectList<BlockEntity> visibleBlockEntities = new ObjectArrayList<>();
+
+        public RenderContext(){
+            for (int i = 0; i < this.chunkRenderLists.length; i++) {
+                this.chunkRenderLists[i] = new ChunkRenderList();
+            }
+        }
+    }
+
+    public RenderContext getEmptyRenderContext() {
+        return new RenderContext();
+    }
+
+    public RenderContext getRenderContext() {
+        RenderContext context = new RenderContext();
+
+        for (int i = 0; i < this.chunkRenderLists.length; i++) {
+            context.chunkRenderLists[i] = this.chunkRenderLists[i];
+        }
+        context.tickableChunks.clear();
+        context.tickableChunks.addAll(this.tickableChunks);
+        context.visibleBlockEntities.clear();
+        context.visibleBlockEntities.addAll(this.visibleBlockEntities);
+
+        return context;
+    }
+
+    @SuppressWarnings("unchecked")
+    public void loadRenderContext(RenderContext context) {
+        for (int i = 0; i < context.chunkRenderLists.length; i++) {
+            this.chunkRenderLists[i] = context.chunkRenderLists[i];
+        }
+        tickableChunks.clear();
+        tickableChunks.addAll(context.tickableChunks);
+        visibleBlockEntities.clear();
+        visibleBlockEntities.addAll(context.visibleBlockEntities);
+    }
+
     public ChunkRenderManager(SodiumWorldRenderer renderer, ChunkRenderBackend<T> backend, BlockRenderPassManager renderPassManager, ClientWorld world, int renderDistance) {
         this.backend = backend;
         this.renderer = renderer;
@@ -107,11 +150,11 @@ public class ChunkRenderManager<T extends ChunkGraphicsState> implements ChunkSt
 
         this.dirty = true;
 
+        this.renderContext = new RenderContext();
 
         for (int i = 0; i < this.chunkRenderLists.length; i++) {
             this.chunkRenderLists[i] = new ChunkRenderList<>();
         }
-
 
         this.culler = new ChunkGraphCuller(world, renderDistance);
         this.useBlockFaceCulling = SodiumClientMod.options().advanced.useBlockFaceCulling;

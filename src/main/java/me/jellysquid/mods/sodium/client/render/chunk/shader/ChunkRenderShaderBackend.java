@@ -1,5 +1,6 @@
 package me.jellysquid.mods.sodium.client.render.chunk.shader;
 
+import me.jellysquid.mods.sodium.client.SodiumHooks;
 import me.jellysquid.mods.sodium.client.gl.attribute.GlVertexFormat;
 import me.jellysquid.mods.sodium.client.gl.shader.GlProgram;
 import me.jellysquid.mods.sodium.client.gl.shader.GlShader;
@@ -31,8 +32,14 @@ public abstract class ChunkRenderShaderBackend<T extends ChunkGraphicsState>
     }
 
     private ChunkProgram createShader(RenderDevice device, ChunkFogMode fogMode, GlVertexFormat<ChunkMeshAttribute> vertexFormat) {
+        // Identifier vIdentifier = SodiumHooks.useClipping.getAsBoolean() ?
+        //     new Identifier("sodium", "chunk_gl20.v.glsl") :
+        //     new Identifier("sodium", "chunk_gl20.v.glsl");
+        Identifier vIdentifier = SodiumHooks.useClipping.getAsBoolean() ?
+            new Identifier("sodium", "chunk_clip_gl30.v.glsl") :
+            new Identifier("sodium", "chunk_gl20.v.glsl");
         GlShader vertShader = ShaderLoader.loadShader(device, ShaderType.VERTEX,
-                new Identifier("sodium", "chunk_gl20.v.glsl"), fogMode.getDefines());
+                vIdentifier, fogMode.getDefines());
 
         GlShader fragShader = ShaderLoader.loadShader(device, ShaderType.FRAGMENT,
                 new Identifier("sodium", "chunk_gl20.f.glsl"), fogMode.getDefines());

@@ -1,7 +1,6 @@
 package me.jellysquid.mods.sodium.client.render.chunk.shader;
 
 import me.jellysquid.mods.sodium.client.SodiumHooks;
-import me.jellysquid.mods.sodium.client.SodiumClientMod;
 import me.jellysquid.mods.sodium.client.gl.shader.GlProgram;
 import me.jellysquid.mods.sodium.client.gl.device.RenderDevice;
 import me.jellysquid.mods.sodium.client.render.GameRendererContext;
@@ -61,9 +60,9 @@ public class ChunkProgram extends GlProgram {
 
         if (SodiumHooks.shouldEnableClipping.getAsBoolean()) {
             float[] clippingEquation = SodiumHooks.getClippingEquation.get();
-            GL20.glUniform4f(this.uClippingEquation, clippingEquation[0], clippingEquation[1], clippingEquation[2], clippingEquation[3]);
+            GL20C.glUniform4f(this.uClippingEquation, clippingEquation[0], clippingEquation[1], clippingEquation[2], clippingEquation[3]);
         } else{
-            GL20.glUniform4f(this.uClippingEquation, 0, 0, 0, 1);
+            GL20C.glUniform4f(this.uClippingEquation, 0, 0, 0, 1);
         }
     }
 }

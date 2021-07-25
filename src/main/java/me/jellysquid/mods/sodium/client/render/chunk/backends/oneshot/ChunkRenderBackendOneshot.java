@@ -36,23 +36,23 @@ public class ChunkRenderBackendOneshot extends ChunkRenderShaderBackend<ChunkOne
         super(vertexType);
     }
 
-    @Override
-    protected ChunkProgramOneshot createShaderProgram(Identifier name, int handle, ChunkFogMode fogMode) {
-        return new ChunkProgramOneshot(name, handle, fogMode.getFactory());
-    }
+    // @Override
+    // protected ChunkProgramOneshot createShaderProgram(Identifier name, int handle, ChunkFogMode fogMode) {
+    //     return new ChunkProgramOneshot(name, handle, fogMode.getFactory());
+    // }
 
-    @Override
-    protected GlShader createVertexShader(ChunkFogMode fogMode) {
-        Identifier identifier = SodiumHooks.useClipping.getAsBoolean() ?
-                new Identifier("sodium", "chunk_clip_gl30.v.glsl") :
-                new Identifier("sodium", "chunk_gl20.v.glsl");
-        return ShaderLoader.loadShader(ShaderType.VERTEX, identifier, fogMode.getDefines());
-    }
+    // @Override
+    // protected GlShader createVertexShader(ChunkFogMode fogMode) {
+    //     Identifier identifier = SodiumHooks.useClipping.getAsBoolean() ?
+    //             new Identifier("sodium", "chunk_clip_gl30.v.glsl") :
+    //             new Identifier("sodium", "chunk_gl20.v.glsl");
+    //     return ShaderLoader.loadShader(ShaderType.VERTEX, identifier, fogMode.getDefines());
+    // }
 
-    @Override
-    protected GlShader createFragmentShader(ChunkFogMode fogMode) {
-        return ShaderLoader.loadShader(ShaderType.FRAGMENT, new Identifier("sodium", "chunk_gl20.f.glsl"), fogMode.getDefines());
-    }
+    // @Override
+    // protected GlShader createFragmentShader(ChunkFogMode fogMode) {
+    //     return ShaderLoader.loadShader(ShaderType.FRAGMENT, new Identifier("sodium", "chunk_gl20.f.glsl"), fogMode.getDefines());
+    // }
 
     @Override
     public void upload(CommandList commandList, Iterator<ChunkBuildResult<ChunkOneshotGraphicsState>> queue) {
